@@ -1,8 +1,7 @@
 import React from 'react';
-import useExcelExport from '../hooks/useExcelExport';
+import exportToExcel from '../hooks/useExcelExport';
 
 const ExcelExportExample = () => {
-    const { exportToExcel } = useExcelExport();
 
     const buttonBaseStyle = {
         padding: '12px 20px',
@@ -287,11 +286,9 @@ const ExcelExportExample = () => {
             <div style={{ marginTop: '20px', backgroundColor: '#e3f2fd', padding: '20px', borderRadius: '5px' }}>
                 <h3>How to Use in Your Components:</h3>
                 <pre style={{ backgroundColor: '#fff', padding: '15px', borderRadius: '5px', overflow: 'auto' }}>
-                    {`import useExcelExport from './hooks/useExcelExport';
+                    {`import exportToExcel from './hooks/useExcelExport';
 
 const MyComponent = () => {
-  const { exportToExcel } = useExcelExport();
-
   const handleExport = async () => {
     const config = {
       fileName: 'my_data.xlsx',

@@ -1,0 +1,958 @@
+================================================================================
+                    EXCELJS EXPORT UTILITY - COMPLETE DOCUMENTATION
+================================================================================
+
+VERSION: 1.0
+LAST UPDATED: December 18, 2025
+FILE: src/hooks/useExcelExport.js
+
+================================================================================
+TABLE OF CONTENTS
+================================================================================
+
+1. Overview
+2. Installation & Setup
+3. Basic Usage
+4. Complete API Reference
+5. Feature Details
+6. Examples
+7. Edge Cases & Limitations
+8. Best Practices
+9. Troubleshooting
+
+================================================================================
+1. OVERVIEW
+================================================================================
+
+A comprehensive, generic Excel export utility for React applications that 
+supports advanced Excel features like:
+- Custom styling (headers, data rows, cells)
+- Data validation (dropdowns)
+- Sheet protection and column locking
+- Freeze panes
+- Comments on cells
+- Multiple sheets in one workbook
+- Custom number formatting
+- Row and cell-level styling
+
+================================================================================
+2. INSTALLATION & SETUP
+================================================================================
+
+Required Dependencies:
+----------------------
+npm install exceljs file-saver
+
+Import in your component:
+-------------------------
+import exportToExcel from './hooks/useExcelExport';
+
+Usage:
+------
+await exportToExcel(config);
+
+================================================================================
+3. BASIC USAGE
+================================================================================
+
+Minimal Example:
+----------------
+await exportToExcel({
+  fileName: 'my-data.xlsx',
+  sheets: [{
+    sheetName: 'Sheet1',
+    data: [
+      { name: 'John', age: 30 },
+      { name: 'Jane', age: 25 }
+    ]
+  }]
+});
+
+With Columns (Headers):
+-----------------------
+await exportToExcel({
+  fileName: 'employees.xlsx',
+  sheets: [{
+    sheetName: 'Employees',
+    columns: [
+      { header: 'Name', key: 'name', width: 20 },
+      { header: 'Age', key: 'age', width: 10 }
+    ],
+    data: [
+      { name: 'John', age: 30 },
+      { name: 'Jane', age: 25 }
+    ]
+  }]
+});
+
+================================================================================
+4. COMPLETE API REFERENCE
+================================================================================
+
+Main Function Signature:
+------------------------
+exportToExcel(config: ExportConfig): Promise<void>
+
+ExportConfig Object:
+--------------------
+{
+  fileName: string,              // Required. Excel file name (e.g., 'data.xlsx')
+  sheets: SheetConfig[]          // Required. Array of sheet configurations
+}
+
+SheetConfig Object:
+-------------------
+{
+  // BASIC STRUCTURE
+  sheetName: string,             // Optional. Default: 'Sheet1'
+  columns: ColumnConfig[],       // Optional. Define columns with headers
+  data: object[],                // Optional. Main data rows
+  customData: CustomData,        // Optional. Additional data with styling
+  
+  // STYLING
+  headerStyle: HeaderStyle,      // Optional. Style for header row
+  dataStyle: RowStyle,           // Optional. Style for all data rows
+  columnColors: ColumnColors,    // Optional. Style specific columns
+  rowStyles: RowStyle[],         // Optional. Style specific rows
+  cellStyles: CellStyle[],       // Optional. Style specific cells
+  
+  // FEATURES
+  comments: Comment[],           // Optional. Add comments to cells
+  dropdowns: Dropdown[],         // Optional. Add dropdown validation
+  freeze: Freeze,                // Optional. Freeze rows/columns
+  protectSheet: Protection,      // Optional. Lock entire sheet
+  lockedColumns: string[]        // Optional. Lock specific columns by key
+}
+
+ColumnConfig:
+-------------
+{
+  header: string,                // Column header text
+  key: string,                   // Property key from data objects
+  width: number                  // Optional. Column width. Default: 15
+}
+
+CustomData (Two formats):
+-------------------------
+// Format 1: Simple array
+customData: [
+  { col1: 'value1', col2: 'value2' },
+  { col1: 'value3', col2: 'value4' }
+]
+
+// Format 2: Array with styling
+customData: {
+  data: [
+    { col1: 'value1', col2: 'value2' }
+  ],
+  style: {
+    font: { bold: true, italic: true, color: { argb: 'FFFF0000' } },
+    fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFCCCCCC' } },
+    alignment: { vertical: 'middle', horizontal: 'left' },
+    border: { top: { style: 'thin', color: { argb: 'FF000000' } } },
+    height: 25
+  }
+}
+
+HeaderStyle:
+------------
+{
+  backgroundColor: string,       // ARGB color (e.g., 'FF4472C4' or '4472C4')
+  textColor: string,             // ARGB color for text
+  borderColor: string,           // ARGB color for borders
+  borderStyle: string,           // 'thin', 'medium', 'thick', 'double', 'dotted', 'dashed'
+  font: {
+    bold: boolean,               // Default: true
+    italic: boolean,
+    size: number,                // Default: 12
+    name: string,                // Font name (e.g., 'Arial')
+    color: { argb: string }
+  },
+  alignment: {
+    vertical: string,            // 'top', 'middle', 'bottom'
+    horizontal: string,          // 'left', 'center', 'right'
+    wrapText: boolean
+  },
+  border: {                      // Custom border object (overrides borderColor/borderStyle)
+    top: { style: string, color: { argb: string } },
+    left: { style: string, color: { argb: string } },
+    bottom: { style: string, color: { argb: string } },
+    right: { style: string, color: { argb: string } }
+  },
+  height: number                 // Row height
+}
+
+RowStyle (used for dataStyle and rowStyles):
+---------------------------------------------
+{
+  font: {
+    bold: boolean,
+    italic: boolean,
+    size: number,
+    name: string,
+    color: { argb: string }
+  },
+  fill: {
+    type: 'pattern',
+    pattern: 'solid',             // or 'darkVertical', 'lightGrid', etc.
+    fgColor: { argb: string }
+  },
+  alignment: {
+    vertical: string,
+    horizontal: string,
+    wrapText: boolean
+  },
+  border: {
+    top: { style: string, color: { argb: string } },
+    left: { style: string, color: { argb: string } },
+    bottom: { style: string, color: { argb: string } },
+    right: { style: string, color: { argb: string } }
+  },
+  height: number
+}
+
+RowStyles Array:
+----------------
+[
+  {
+    row: number,                 // Single row number (e.g., 3)
+    style: RowStyle
+  },
+  {
+    rows: number[],              // Multiple specific rows (e.g., [2, 4, 6])
+    style: RowStyle
+  },
+  {
+    startRow: number,            // Range of rows
+    endRow: number,
+    style: RowStyle
+  }
+]
+
+CellStyle:
+----------
+{
+  // Option 1: Single cell by address
+  cell: string,                  // e.g., 'A1', 'B5'
+  style: StyleObject
+}
+{
+  // Option 2: Multiple cells
+  cells: string[],               // e.g., ['A1', 'B2', 'C3']
+  style: StyleObject
+}
+{
+  // Option 3: Cell by row + column key (requires columns defined)
+  row: number,
+  column: string,                // Column key (e.g., 'name')
+  style: StyleObject
+}
+{
+  // Option 4: Range of cells
+  startCell: string,             // e.g., 'A1'
+  endCell: string,               // e.g., 'C5'
+  style: StyleObject
+}
+
+StyleObject (for cells):
+------------------------
+{
+  font: { bold: boolean, italic: boolean, size: number, color: { argb: string } },
+  fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: string } },
+  alignment: { vertical: string, horizontal: string, wrapText: boolean },
+  border: { top: {...}, left: {...}, bottom: {...}, right: {...} },
+  numFmt: string                 // e.g., '$#,##0.00', '0.00%', '@' (text)
+}
+
+ColumnColors:
+-------------
+{
+  [columnKey: string]: {
+    backgroundColor: string,     // ARGB color
+    textColor: string,           // ARGB color
+    numFmt: string               // Number format (e.g., '$#,##0.00')
+  }
+}
+
+Comment:
+--------
+{
+  key: string,                   // Column key (requires columns defined)
+  text: string,                  // Comment text
+  author: string                 // Optional. Author name
+}
+
+Dropdown:
+---------
+{
+  key: string,                   // Column key (requires columns defined)
+  options: string[],             // Dropdown options
+  startRow: number,              // Optional. Default: 2
+  endRow: number,                // Optional. Auto-calculated if not provided
+  additionalRows: number         // Optional. Extra rows beyond data. Default: 100
+}
+
+Freeze:
+-------
+{
+  rows: number,                  // Number of rows to freeze from top
+  columns: number                // Number of columns to freeze from left
+}
+
+Protection (Two formats):
+-------------------------
+// Format 1: Simple boolean
+protectSheet: true
+
+// Format 2: Detailed configuration
+protectSheet: {
+  password: string,              // Optional. Password to protect sheet
+  selectLockedCells: boolean,    // Default: true
+  selectUnlockedCells: boolean,  // Default: true
+  formatCells: boolean,          // Default: false
+  formatColumns: boolean,        // Default: false
+  formatRows: boolean,           // Default: false
+  insertColumns: boolean,        // Default: false
+  insertRows: boolean,           // Default: false
+  deleteColumns: boolean,        // Default: false
+  deleteRows: boolean,           // Default: false
+  sort: boolean,                 // Default: false
+  autoFilter: boolean            // Default: false
+}
+
+================================================================================
+5. FEATURE DETAILS
+================================================================================
+
+5.1 COLUMNS vs NO COLUMNS
+--------------------------
+WITH COLUMNS: First row becomes header, data mapped by keys
+WITHOUT COLUMNS: Raw data, no headers, uses Object.values() for order
+
+Example WITH columns:
+columns: [{ header: 'Name', key: 'name', width: 20 }]
+data: [{ name: 'John', age: 30 }]
+Result: Header "Name" in row 1, "John" in row 2
+
+Example WITHOUT columns:
+data: [{ name: 'John', age: 30 }]
+Result: "John" and 30 in row 1 (no header)
+
+
+5.2 DATA STYLE
+--------------
+Applies styling to ALL data rows (excludes header and customData)
+Only works when data array has items
+
+Example:
+dataStyle: {
+  border: {
+    top: { style: 'thin', color: { argb: 'FF000000' } },
+    left: { style: 'thin', color: { argb: 'FF000000' } },
+    bottom: { style: 'thin', color: { argb: 'FF000000' } },
+    right: { style: 'thin', color: { argb: 'FF000000' } }
+  }
+}
+
+
+5.3 CUSTOM DATA
+---------------
+Additional data rows appended AFTER main data
+Can have different styling than main data
+Useful for totals, summaries, or special rows
+
+Example:
+customData: {
+  data: [
+    { name: 'TOTAL', count: 100 }
+  ],
+  style: {
+    font: { bold: true },
+    fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFCCCC' } }
+  }
+}
+
+
+5.4 COLUMN COLORS
+-----------------
+Applies to entire column (excluding header if columns defined)
+Supports background, text color, and number formatting
+
+Example:
+columnColors: {
+  salary: {
+    backgroundColor: 'FFFFEAA7',
+    textColor: 'FF000000',
+    numFmt: '$#,##0.00'           // Formats as currency
+  }
+}
+
+
+5.5 ROW STYLES
+--------------
+Three ways to target rows:
+1. Single row: { row: 3, style: {...} }
+2. Multiple rows: { rows: [2, 4, 6], style: {...} }
+3. Range: { startRow: 5, endRow: 10, style: {...} }
+
+Example:
+rowStyles: [
+  { 
+    row: 2, 
+    style: { 
+      fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFCCFFCC' } } 
+    } 
+  }
+]
+
+
+5.6 CELL STYLES
+---------------
+Four ways to target cells:
+1. By address: { cell: 'A1', style: {...} }
+2. Multiple addresses: { cells: ['A1', 'B2'], style: {...} }
+3. By row + column key: { row: 2, column: 'name', style: {...} } (requires columns)
+4. Range: { startCell: 'A1', endCell: 'C5', style: {...} }
+
+Example:
+cellStyles: [
+  { 
+    cell: 'A1', 
+    style: { 
+      font: { bold: true, color: { argb: 'FFFF0000' } } 
+    } 
+  }
+]
+
+
+5.7 COMMENTS
+------------
+Only works when columns are defined
+Hover over cell in Excel to see comment
+
+Example:
+comments: [
+  { 
+    key: 'salary', 
+    text: 'Annual salary in USD', 
+    author: 'HR Department' 
+  }
+]
+
+
+5.8 DROPDOWNS
+-------------
+Only works when columns are defined
+Creates data validation with dropdown list
+Auto-calculates end row if not specified
+Handles special characters (quotes, commas)
+Warns if formula exceeds 255 characters
+
+Example:
+dropdowns: [
+  {
+    key: 'status',
+    options: ['Active', 'Inactive', 'On Leave'],
+    startRow: 2,           // Optional
+    endRow: 100,           // Optional
+    additionalRows: 50     // Optional
+  }
+]
+
+
+5.9 FREEZE PANES
+----------------
+Locks rows/columns in place when scrolling
+rows: freeze from top (e.g., 1 = freeze first row)
+columns: freeze from left (e.g., 1 = freeze first column)
+
+Example:
+freeze: {
+  rows: 1,      // Freeze header row
+  columns: 0    // No column freeze
+}
+
+
+5.10 SHEET PROTECTION
+---------------------
+Locks entire sheet or specific columns
+Two modes: simple (true) or detailed (object)
+lockedColumns requires columns to be defined
+
+Example 1 - Protect entire sheet:
+protectSheet: true
+
+Example 2 - Protect with password:
+protectSheet: {
+  password: 'secret123',
+  selectLockedCells: true,
+  selectUnlockedCells: true
+}
+
+Example 3 - Lock specific columns:
+lockedColumns: ['id', 'createdDate']
+// Automatically protects sheet if not already protected
+
+
+5.11 MULTIPLE SHEETS
+--------------------
+Create workbook with multiple worksheets
+Each sheet is completely independent
+
+Example:
+await exportToExcel({
+  fileName: 'report.xlsx',
+  sheets: [
+    { sheetName: 'Sales', data: salesData },
+    { sheetName: 'Expenses', data: expenseData },
+    { sheetName: 'Summary', data: summaryData }
+  ]
+});
+
+================================================================================
+6. EXAMPLES
+================================================================================
+
+EXAMPLE 1: Basic Export
+-----------------------
+await exportToExcel({
+  fileName: 'employees.xlsx',
+  sheets: [{
+    sheetName: 'Employees',
+    columns: [
+      { header: 'ID', key: 'id', width: 10 },
+      { header: 'Name', key: 'name', width: 20 }
+    ],
+    data: [
+      { id: 1, name: 'John Doe' },
+      { id: 2, name: 'Jane Smith' }
+    ]
+  }]
+});
+
+
+EXAMPLE 2: Styled Headers
+--------------------------
+await exportToExcel({
+  fileName: 'report.xlsx',
+  sheets: [{
+    sheetName: 'Report',
+    columns: [
+      { header: 'Product', key: 'product', width: 20 },
+      { header: 'Sales', key: 'sales', width: 15 }
+    ],
+    data: [...],
+    headerStyle: {
+      backgroundColor: 'FF2E75B6',
+      textColor: 'FFFFFFFF',
+      borderStyle: 'medium',
+      font: { bold: true, size: 14 },
+      alignment: { horizontal: 'center' }
+    }
+  }]
+});
+
+
+EXAMPLE 3: Data with Borders
+-----------------------------
+await exportToExcel({
+  fileName: 'inventory.xlsx',
+  sheets: [{
+    sheetName: 'Inventory',
+    columns: [...],
+    data: [...],
+    dataStyle: {
+      border: {
+        top: { style: 'thin', color: { argb: 'FFCCCCCC' } },
+        left: { style: 'thin', color: { argb: 'FFCCCCCC' } },
+        bottom: { style: 'thin', color: { argb: 'FFCCCCCC' } },
+        right: { style: 'thin', color: { argb: 'FFCCCCCC' } }
+      },
+      alignment: { vertical: 'middle' }
+    }
+  }]
+});
+
+
+EXAMPLE 4: Dropdowns and Validation
+------------------------------------
+await exportToExcel({
+  fileName: 'form.xlsx',
+  sheets: [{
+    sheetName: 'Form',
+    columns: [
+      { header: 'Name', key: 'name', width: 20 },
+      { header: 'Status', key: 'status', width: 15 },
+      { header: 'Department', key: 'dept', width: 15 }
+    ],
+    data: [...],
+    dropdowns: [
+      {
+        key: 'status',
+        options: ['Active', 'Inactive', 'Pending']
+      },
+      {
+        key: 'dept',
+        options: ['Sales', 'IT', 'HR', 'Finance']
+      }
+    ]
+  }]
+});
+
+
+EXAMPLE 5: Currency Formatting
+-------------------------------
+await exportToExcel({
+  fileName: 'financial.xlsx',
+  sheets: [{
+    sheetName: 'Financial',
+    columns: [
+      { header: 'Item', key: 'item', width: 20 },
+      { header: 'Amount', key: 'amount', width: 15 }
+    ],
+    data: [
+      { item: 'Revenue', amount: 150000 },
+      { item: 'Expenses', amount: 75000 }
+    ],
+    columnColors: {
+      amount: {
+        numFmt: '$#,##0.00'       // Shows as $150,000.00
+      }
+    }
+  }]
+});
+
+
+EXAMPLE 6: Protected Sheet with Locked Columns
+-----------------------------------------------
+await exportToExcel({
+  fileName: 'secure.xlsx',
+  sheets: [{
+    sheetName: 'Data',
+    columns: [
+      { header: 'ID', key: 'id', width: 10 },
+      { header: 'Name', key: 'name', width: 20 },
+      { header: 'Editable', key: 'notes', width: 30 }
+    ],
+    data: [...],
+    protectSheet: {
+      password: 'admin123',
+      selectLockedCells: true,
+      selectUnlockedCells: true
+    },
+    lockedColumns: ['id', 'name']  // ID and Name locked, Notes editable
+  }]
+});
+
+
+EXAMPLE 7: Freeze Header Row
+-----------------------------
+await exportToExcel({
+  fileName: 'large-data.xlsx',
+  sheets: [{
+    sheetName: 'Data',
+    columns: [...],
+    data: [...],  // Large dataset
+    freeze: {
+      rows: 1,    // Freeze first row (header)
+      columns: 0
+    }
+  }]
+});
+
+
+EXAMPLE 8: Highlighted Rows
+----------------------------
+await exportToExcel({
+  fileName: 'report.xlsx',
+  sheets: [{
+    sheetName: 'Report',
+    columns: [...],
+    data: [...],
+    rowStyles: [
+      {
+        row: 2,
+        style: {
+          fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFCCCC' } },
+          font: { bold: true }
+        }
+      },
+      {
+        startRow: 5,
+        endRow: 7,
+        style: {
+          fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFCCFFCC' } }
+        }
+      }
+    ]
+  }]
+});
+
+
+EXAMPLE 9: Custom Data with Totals
+-----------------------------------
+await exportToExcel({
+  fileName: 'sales.xlsx',
+  sheets: [{
+    sheetName: 'Sales',
+    columns: [
+      { header: 'Product', key: 'product', width: 20 },
+      { header: 'Quantity', key: 'qty', width: 10 },
+      { header: 'Total', key: 'total', width: 15 }
+    ],
+    data: [
+      { product: 'Product A', qty: 10, total: 1000 },
+      { product: 'Product B', qty: 5, total: 500 }
+    ],
+    customData: {
+      data: [
+        {},  // Empty row for spacing
+        { product: 'TOTAL', qty: 15, total: 1500 }
+      ],
+      style: {
+        font: { bold: true, size: 12 },
+        fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFCCCC' } },
+        border: {
+          top: { style: 'medium', color: { argb: 'FF000000' } }
+        }
+      }
+    }
+  }]
+});
+
+
+EXAMPLE 10: Multiple Sheets with Different Styles
+--------------------------------------------------
+await exportToExcel({
+  fileName: 'company-report.xlsx',
+  sheets: [
+    {
+      sheetName: 'Sales',
+      columns: [...],
+      data: salesData,
+      headerStyle: {
+        backgroundColor: 'FFFF6B6B',
+        textColor: 'FFFFFFFF'
+      }
+    },
+    {
+      sheetName: 'Expenses',
+      columns: [...],
+      data: expenseData,
+      headerStyle: {
+        backgroundColor: 'FF4ECDC4',
+        textColor: 'FFFFFFFF'
+      }
+    },
+    {
+      sheetName: 'Summary',
+      columns: [...],
+      data: summaryData,
+      headerStyle: {
+        backgroundColor: 'FF95E1D3',
+        textColor: 'FF000000'
+      }
+    }
+  ]
+});
+
+
+EXAMPLE 11: Cell-Level Styling
+-------------------------------
+await exportToExcel({
+  fileName: 'styled.xlsx',
+  sheets: [{
+    sheetName: 'Data',
+    columns: [...],
+    data: [...],
+    cellStyles: [
+      {
+        cell: 'A1',
+        style: { font: { bold: true, color: { argb: 'FFFF0000' } } }
+      },
+      {
+        cells: ['B2', 'C2', 'D2'],
+        style: { fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFF00' } } }
+      },
+      {
+        row: 5,
+        column: 'total',
+        style: { numFmt: '$#,##0.00', font: { bold: true } }
+      },
+      {
+        startCell: 'A10',
+        endCell: 'C15',
+        style: { fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFCCCCCC' } } }
+      }
+    ]
+  }]
+});
+
+
+EXAMPLE 12: Without Columns (Raw Data)
+---------------------------------------
+await exportToExcel({
+  fileName: 'raw-data.xlsx',
+  sheets: [{
+    sheetName: 'Raw',
+    data: [
+      { a: 1, b: 2, c: 3 },
+      { a: 4, b: 5, c: 6 }
+    ]
+    // No columns defined - exports raw object values
+    // Result: Row 1 contains [1, 2, 3], Row 2 contains [4, 5, 6]
+  }]
+});
+
+================================================================================
+7. EDGE CASES & LIMITATIONS
+================================================================================
+
+7.1 EMPTY DATA
+--------------
+Issue: Empty data array may cause styling issues
+Solution: Always check data.length before applying dataStyle
+
+
+7.2 MISSING COLUMN KEYS
+-----------------------
+Issue: If column key doesn't exist in data, cell will be empty
+Solution: Ensure data objects have all keys defined in columns
+
+
+7.3 SPECIAL CHARACTERS IN DROPDOWN
+-----------------------------------
+Issue: Quotes and commas in dropdown options can break Excel
+Solution: Automatically handled - quotes are escaped
+
+
+7.4 LONG DROPDOWN LISTS
+------------------------
+Issue: Excel has 255 character limit for dropdown formulas
+Solution: Console warning displayed, use named ranges for large lists
+
+
+7.5 CELL STYLES WITHOUT COLUMNS
+--------------------------------
+Issue: Row + column key styling requires columns to be defined
+Solution: Use cell address instead, or define columns
+
+
+7.6 DATA ORDER WITHOUT COLUMNS
+-------------------------------
+Issue: Object.values() order may vary across rows
+Solution: Define columns for consistent layout
+
+
+7.7 COLUMN COLORS OVERRIDE ROW STYLES
+--------------------------------------
+Issue: columnColors applied AFTER rowStyles, may override
+Solution: Apply order is: dataStyle → rowStyles → columnColors → cellStyles
+
+
+7.8 PROTECTING SHEET LOCKS ALL CELLS
+-------------------------------------
+Issue: protectSheet locks ALL cells by default
+Solution: Use lockedColumns to unlock specific columns
+
+
+7.9 FREEZE MUST USE POSITIVE NUMBERS
+-------------------------------------
+Issue: freeze with 0 rows/columns does nothing
+Solution: Use freeze only when needed
+
+
+7.10 COMMENTS REQUIRE COLUMNS
+------------------------------
+Issue: Comments only work when columns are defined
+Solution: Define columns if you need comments
+
+================================================================================
+8. BEST PRACTICES
+================================================================================
+
+8.1 Always use columns for structured data
+8.2 Use dataStyle for consistent borders
+8.3 Combine features logically (e.g., freeze + headerStyle)
+8.4 Use meaningful column keys
+8.5 Protect sheets with passwords
+8.6 Use number formatting for currency/percentages
+8.7 Add comments for user guidance
+8.8 Use customData for totals/summaries
+8.9 Freeze panes for large datasets
+8.10 Validate data before export
+8.11 Use descriptive file names
+8.12 Handle errors gracefully with try/catch
+
+================================================================================
+9. TROUBLESHOOTING
+================================================================================
+
+PROBLEM: Excel file downloads but is empty
+SOLUTION: Check sheets array has valid data
+
+PROBLEM: Headers not showing
+SOLUTION: Ensure columns array is defined
+
+PROBLEM: Dropdown not working
+SOLUTION: Verify columns are defined and key matches
+
+PROBLEM: Sheet protection not working
+SOLUTION: Use object format with password
+
+PROBLEM: Colors not showing
+SOLUTION: Use ARGB format (8 digits), prefix with 'FF'
+
+PROBLEM: Border not visible
+SOLUTION: Use 'medium' or 'thick' borderStyle
+
+PROBLEM: Cell style not applying
+SOLUTION: Check cell address format (uppercase, valid)
+
+PROBLEM: Data appears in wrong order
+SOLUTION: Define columns to enforce order
+
+PROBLEM: CustomData not styled
+SOLUTION: Use object format with style property
+
+PROBLEM: Frozen panes not working
+SOLUTION: Use positive numbers (0 means no freeze)
+
+================================================================================
+COMMON NUMBER FORMATS
+================================================================================
+
+Currency:        '$#,##0.00'
+Percentage:      '0.00%'
+Number:          '#,##0.00'
+Date:            'mm/dd/yyyy'
+Text:            '@'
+
+================================================================================
+ARGB COLOR REFERENCE
+================================================================================
+
+Black:       'FF000000'
+White:       'FFFFFFFF'
+Red:         'FFFF0000'
+Green:       'FF00FF00'
+Blue:        'FF0000FF'
+Yellow:      'FFFFFF00'
+Light Gray:  'FFD3D3D3'
+
+================================================================================
+BORDER STYLES
+================================================================================
+
+'thin'    - 1px (default)
+'medium'  - 2px (recommended for headers)
+'thick'   - 3px
+'double'  - Double line
+
+================================================================================
+END OF DOCUMENTATION
+================================================================================
+
+Version: 1.0
+Last Updated: December 18, 2025
+File: src/hooks/useExcelExport.js

@@ -56,6 +56,20 @@ const ExcelExportExample = () => {
                     ],
                     data: sampleData,
 
+                    // Style for all data rows (excludes header)
+                    dataStyle: {
+                        border: {
+                            top: { style: 'thin', color: { argb: '000000' } },
+                            left: { style: 'thin', color: { argb: '000000' } },
+                            bottom: { style: 'thin', color: { argb: '000000' } },
+                            right: { style: 'thin', color: { argb: '000000' } },
+                        },
+                        alignment: {
+                            vertical: 'middle',
+                            horizontal: 'left',
+                        },
+                    },
+
                     // Custom data - additional rows appended below main data
                     // Can be array or object with styling
                     customData: {
@@ -91,7 +105,8 @@ const ExcelExportExample = () => {
                     headerStyle: {
                         backgroundColor: 'FF2E75B6', // Blue background
                         textColor: 'FFFFFFFF', // White text
-                        borderColor: 'FF000000', // Black border
+                        borderColor: 'FF000000', // Black border (or just '000000')
+                        borderStyle: 'medium', // thin, medium, thick, double
                         font: {
                             bold: true,
                             size: 13,
@@ -131,7 +146,14 @@ const ExcelExportExample = () => {
                         columns: 0,
                     },
 
-                    // Lock specific columns (ID column)
+                    // // Protect entire sheet (locks all cells by default)
+                    // protectSheet: {
+                    //     password: 'secret123',
+                    //     selectLockedCells: true,
+                    //     selectUnlockedCells: true,
+                    // },
+
+                    // Lock specific columns (ID column) - requires sheet protection
                     lockedColumns: ['id', 'name'],
 
                     // Apply colors to specific columns
@@ -143,8 +165,44 @@ const ExcelExportExample = () => {
                         salary: {
                             backgroundColor: 'FFFFEAA7', // Light yellow
                             textColor: 'FF000000', // Black text
+                            numFmt: '$#,##0.00', // Currency format
                         },
                     },
+
+                    // Apply styles to specific rows
+                    rowStyles: [
+                        {
+                            row: 3, // Style row 3
+                            style: {
+                                fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFCCFFCC' } },
+                                font: { bold: true },
+                            },
+                        },
+                        {
+                            startRow: 5,
+                            endRow: 6,
+                            style: {
+                                fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFCCCC' } },
+                            },
+                        },
+                    ],
+
+                    // Apply styles to specific cells
+                    cellStyles: [
+                        {
+                            row: 2,
+                            column: 'name',
+                            style: {
+                                font: { bold: true, color: { argb: 'FFFF0000' } },
+                            },
+                        },
+                        {
+                            cell: 'A4',
+                            style: {
+                                fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFF00' } },
+                            },
+                        },
+                    ],
                 },
                 {
                     sheetName: 'Summary',
@@ -169,6 +227,12 @@ const ExcelExportExample = () => {
                 },
                 {
                     sheetName: 'Summary1',
+                    // Protect entire sheet (locks all cells by default)
+                    protectSheet: {
+                        password: 'secret123',
+                        selectLockedCells: true,
+                        selectUnlockedCells: true,
+                    },
                     customData: {
                         data: [
                             {},
@@ -275,8 +339,12 @@ const ExcelExportExample = () => {
                     <li>✅ <strong>Comments on Headers</strong> - Hover over ID, Department, and Salary header cells</li>
                     <li>✅ <strong>Dropdowns</strong> - Department and Status columns have dropdown lists</li>
                     <li>✅ <strong>Header Styling</strong> - Custom background colors, text colors, and borders</li>
-                    <li>✅ <strong>Column Colors</strong> - Status column has a yellow background</li>
-                    <li>✅ <strong>Locked Columns</strong> - ID column is locked (sheet is protected)</li>
+                    <li>✅ <strong>Data Styling</strong> - Apply borders and styles to all data rows</li>
+                    <li>✅ <strong>Column Colors</strong> - Status and Salary columns have styling</li>
+                    <li>✅ <strong>Row Styles</strong> - Row 3 has green background, rows 5-6 have red background</li>
+                    <li>✅ <strong>Cell Styles</strong> - Specific cells have custom styling</li>
+                    <li>✅ <strong>Sheet Protection</strong> - Sheet is protected with password</li>
+                    <li>✅ <strong>Locked Columns</strong> - ID and Name columns are locked</li>
                     <li>✅ <strong>Freeze Panes</strong> - First row is frozen</li>
                     <li>✅ <strong>Multiple Sheets</strong> - Create workbooks with multiple worksheets</li>
                     <li>✅ <strong>Custom Data</strong> - Add any data structure you want</li>
@@ -317,14 +385,32 @@ const MyComponent = () => {
             backgroundColor: 'FF4472C4',
             textColor: 'FFFFFFFF',
           },
+          dataStyle: {
+            border: {
+              top: { style: 'thin', color: { argb: 'FFCCCCCC' } },
+              left: { style: 'thin', color: { argb: 'FFCCCCCC' } },
+              bottom: { style: 'thin', color: { argb: 'FFCCCCCC' } },
+              right: { style: 'thin', color: { argb: 'FFCCCCCC' } },
+            },
+          },
           freeze: { rows: 1, columns: 0 },
+          protectSheet: true, // or { password: 'pass', selectLockedCells: true }
           dropdowns: [
             {
-              key: 'col1', // Use column key
+              key: 'col1',
               options: ['Option1', 'Option2'],
-              // startRow, endRow, additionalRows are all optional
-              // By default: applies to all data rows + 100 extra rows
             },
+          ],
+          columnColors: {
+            col1: { backgroundColor: 'FFFFEAA7', textColor: 'FF000000' },
+          },
+          rowStyles: [
+            { row: 2, style: { fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFCCFFCC' } } } },
+            { startRow: 3, endRow: 5, style: { font: { bold: true } } },
+          ],
+          cellStyles: [
+            { cell: 'A2', style: { font: { color: { argb: 'FFFF0000' } } } },
+            { row: 3, column: 'col1', style: { fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFF00' } } } },
           ],
         },
       ],
